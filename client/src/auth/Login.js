@@ -2,10 +2,15 @@ import { useState } from "react";
 import { toast } from "react-toastify";
 import { login } from "../actions/auth";
 import LoginForm from "../components/LoginForm";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -14,7 +19,15 @@ const Login = () => {
       let res = await login({ email, password });
       if (res.data) {
         console.log("SAVE USER RES IN REDUX AND LS THEN REDIRECT ===>");
-        console.log(res.data);
+        // console.log(res.data);
+        //save user n token to LS
+        window.localStorage.setItem("auth", JSON.stringify(res.data));
+        //save user n token to redux
+        dispatch({
+          type: "LOGGED_IN_USER",
+          payload: res.data,
+        });
+        navigate("/dashboard");
       }
     } catch (err) {
       console.log(err);
