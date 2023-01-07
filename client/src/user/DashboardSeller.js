@@ -2,7 +2,7 @@ import DashboardNav from "../components/DashboardNav";
 import ConnectNav from "../components/ConnectNav";
 import { Link } from "react-router-dom";
 
-const Dashboard = () => {
+const DashboardSeller = () => {
   return (
     <>
       <div className="container-fluid bg-secondary p-5">
@@ -14,14 +14,14 @@ const Dashboard = () => {
       <div className="container-fluid">
         <div className="row">
           <div className="col-md-10">
-            <h2>Your Bookings</h2>
+            <h2>Your Hotels</h2>
           </div>
           <div className="col-md-2">
             <Link
-              to="/"
+              to="/hotels/new"
               className="btn btn-primary"
             >
-              Browse Hotels
+              + Add New
             </Link>
           </div>
         </div>
@@ -30,4 +30,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardSeller;
