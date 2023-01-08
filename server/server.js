@@ -1,7 +1,8 @@
-const express = require("express");
+import express from "express";
 import { readdirSync } from "fs";
 import cors from "cors";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
 const morgan = require("morgan");
 require("dotenv").config();
 
@@ -23,5 +24,4 @@ readdirSync("./routes").map((r) => app.use("/api", require(`./routes/${r}`)));
 // app.use("/api", router);
 
 const port = process.env.PORT || 8000;
-
 app.listen(port, () => console.log(`Server is running on port ${port}`));
