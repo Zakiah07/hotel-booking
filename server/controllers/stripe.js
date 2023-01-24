@@ -42,3 +42,21 @@ export const createConnectAccount = async (req, res) => {
   //   console.log("REQ USER FROM SIGN IN MIDDLEWARE", req.auth);
   //   console.log("YOU HIT CREATE ACCOUNT ENDPOINT");
 };
+
+export const getAccountStatus = async (req, res) => {
+  // console.log("GET ACCOUNT STATUS");
+  const user = await User.findById(req.auth._id).exec();
+  const account = await stripe.accounts.retrieve(user.stripe_account_id);
+  // console.log("USER ACCOUNT RETRIEVED", account);
+  const updatedUser = await User.findByIdAndUpdate(
+    user._id,
+    { stripe_seller: account },
+    {
+      new: true,
+    }
+  )
+    .select("-password")
+    .exec();
+  // console.log(updatedUser);
+  res.json(updatedUser);
+};
