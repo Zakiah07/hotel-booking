@@ -67,7 +67,7 @@ export const remove = async (req, res) => {
 };
 
 export const read = async (req, res) => {
-  let hotel = await (await Hotel.findById(req.params.hotelId))
+  let hotel = await Hotel.findById(req.params.hotelId)
     .select("-image.data")
     .exec();
   console.log("SINGLE HOTELS");
