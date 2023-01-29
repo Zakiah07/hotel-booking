@@ -65,3 +65,11 @@ export const remove = async (req, res) => {
     .exec();
   res.json(removed);
 };
+
+export const read = async (req, res) => {
+  let hotel = await (await Hotel.findById(req.params.hotelId))
+    .select("-image.data")
+    .exec();
+  console.log("SINGLE HOTELS");
+  res.json(hotel);
+};
