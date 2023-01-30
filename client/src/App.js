@@ -11,6 +11,7 @@ import DashboardSeller from "./user/DashboardSeller";
 import NewHotel from "./hotels/NewHotel";
 import StripeCallback from "./stripe/StripeCallback";
 import EditHotel from "./hotels/EditHotel";
+import ViewHotel from "./hotels/ViewHotel";
 
 function App() {
   return (
@@ -69,6 +70,10 @@ function App() {
               <EditHotel />
             </PrivateRoute>
           }
+        />
+        <Route
+          path="/hotel/:hotelId"
+          element={<ViewHotel />}
         />
       </Routes>
     </Router>
