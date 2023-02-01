@@ -17,7 +17,7 @@ const ViewHotel = () => {
 
   useEffect(() => {
     loadSellerHotel();
-  });
+  }, []);
 
   const loadSellerHotel = async () => {
     let res = await read(hotelId);

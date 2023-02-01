@@ -1,5 +1,6 @@
 import Hotel from "../models/hotel";
 import fs from "fs";
+import Order from "../models/order";
 
 export const create = async (req, res) => {
   //   console.log("req.fields", req.fields);
@@ -99,4 +100,13 @@ export const update = async (req, res) => {
     console.log(err);
     res.status(400).send("Hotel update failed. Try again");
   }
+};
+
+export const userHotelBookings = async (req, res) => {
+  const all = await Order.find({ orderedBy: req.auth._id })
+    .select("session")
+    .populate("hotel", "-image.data")
+    .populate("orderedBy", "_id name")
+    .exec();
+  res.json(all);
 };

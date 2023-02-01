@@ -1,6 +1,7 @@
 import User from "../models/user";
 import Stripe from "stripe";
-import hotel from "../models/hotel";
+import Hotel from "../models/hotel";
+import Order from "../models/order";
 // import queryString from "query-string";
 
 const queryString = require("querystring");
@@ -122,12 +123,11 @@ export const stripeSessionId = async (req, res) => {
   // 1.get hotel id from req.body
   const { hotelId } = req.body;
   // 2.find the hotel based on hotel id from db
-  const item = await hotel.findById(hotelId).populate("postedBy").exec();
+  const item = await Hotel.findById(hotelId).populate("postedBy").exec();
   // 3. 20% charge as application fee
   const fee = (item.price * 15) / 100;
   // 4. create a session
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ["card"],
     // 5. purchasing item details, it will be shown to user on checkout
     line_items: [
       {
@@ -141,6 +141,7 @@ export const stripeSessionId = async (req, res) => {
         quantity: 1,
       },
     ],
+    payment_method_types: ["card"],
     mode: "payment",
     // 6. create payment intent with application fee and destination charge
     payment_intent_data: {
@@ -162,4 +163,45 @@ export const stripeSessionId = async (req, res) => {
     sessionId: session.id,
   });
   // console.log("SESSION =====>", session);
+};
+
+export const stripeSuccess = async (req, res) => {
+  try {
+    // 1. get hotel id from req.body
+    const { hotelId } = req.body;
+    // 2. find currently logged in user
+    const user = await User.findById(req.auth._id).exec();
+    // check if user has stripeSession
+    if (!user.stripeSession) return;
+    // 3. retrieve stripe session, based on session id we previously save in user db
+    const session = await stripe.checkout.sessions.retrieve(
+      user.stripeSession.id
+    );
+    console.log({ session });
+    // 4. if session payment status is paid, create order
+    if (session.payment_status === "paid") {
+      // 5. check if order with that session id already exist by querying order collection
+      const orderExist = await Order.findOne({
+        "session.id": session.id,
+      }).exec();
+      if (orderExist) {
+        // 6. if order exist, send success true
+        res.json({ success: true });
+      } else {
+        // create new order and send success true
+        let newOrder = await new Order({
+          hotel: hotelId,
+          session,
+          orderedBy: user._id,
+        }).save();
+        // remove user stripeSession
+        await User.findByIdAndUpdate(user._id, {
+          $set: { stripeSession: {} },
+        });
+        res.json({ success: true });
+      }
+    }
+  } catch (err) {
+    console.log("STRIPE SUCCESS ERROR", err);
+  }
 };

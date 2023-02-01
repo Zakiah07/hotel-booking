@@ -34,7 +34,7 @@ const SmallCard = ({
             <div className="card-body">
               <h3 className="card-title">
                 {h.title}
-                <span className="float-right text-primary">
+                <span className="float-right text-primary p-2">
                   {currencyFormatter({
                     amount: h.price * 100,
                     currency: "myr",
@@ -49,7 +49,7 @@ const SmallCard = ({
                   {diffDays(h.from, h.to) <= 1 ? "day" : "days"}
                 </span>
               </p>
-              <p className="card-text">{h.bed}</p>
+              <p className="card-text">{h.bed} bed</p>
               <p className="card-text">
                 Available from {new Date(h.from).toLocaleDateString()}
               </p>
