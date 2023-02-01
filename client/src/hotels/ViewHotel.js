@@ -4,10 +4,12 @@ import { read, diffDays } from "../actions/hotel";
 import moment from "moment";
 import { useSelector } from "react-redux";
 import { getSessionId } from "../actions/stripe";
+import { loadStripe } from "@stripe/stripe-js";
 
 const ViewHotel = () => {
   const [hotel, setHotel] = useState({});
   const [image, setImage] = useState("");
+  const [loading, setLoading] = useState(false);
   const { hotelId } = useParams();
   const navigate = useNavigate();
 
@@ -15,7 +17,7 @@ const ViewHotel = () => {
 
   useEffect(() => {
     loadSellerHotel();
-  }, []);
+  });
 
   const loadSellerHotel = async () => {
     let res = await read(hotelId);
@@ -26,10 +28,17 @@ const ViewHotel = () => {
 
   const handleClick = async (e) => {
     e.preventDefault();
+    setLoading(true);
     if (!auth) navigate("/login");
     console.log(auth.token, hotelId);
     let res = await getSessionId(auth.token, hotelId);
-    console.log("get session id", res.data.sessionId);
+    // console.log("get session id", res.data.sessionId);
+    const stripe = await loadStripe(process.env.REACT_APP_STRIPE_KEY);
+    stripe
+      .redirectToCheckout({
+        sessionId: res.data.sessionId,
+      })
+      .then((result) => console.log(result));
   };
 
   return (
@@ -69,9 +78,14 @@ const ViewHotel = () => {
             <br />
             <button
               onClick={handleClick}
-              className="btn btn-block btn-lg btn-primary mt-3 "
+              className="btn btn-block btn-lg btn-primary mt-3"
+              disabled={loading}
             >
-              {auth && auth.token ? "Book Now" : "Login to Book"}
+              {loading
+                ? "Loading..."
+                : auth && auth.token
+                ? "Book Now"
+                : "Login to Book"}
             </button>
           </div>
         </div>

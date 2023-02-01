@@ -1,5 +1,6 @@
 import User from "../models/user";
 import Stripe from "stripe";
+import hotel from "../models/hotel";
 // import queryString from "query-string";
 
 const queryString = require("querystring");
@@ -48,7 +49,7 @@ const updateDelayDays = async (accountId) => {
     settings: {
       payouts: {
         schedule: {
-          delay_days: 7,
+          delay_days: 1,
         },
       },
     },
@@ -107,4 +108,58 @@ export const payoutSetting = async (req, res) => {
   } catch (err) {
     console.log("STRIPE SETTING ERR", err);
   }
+};
+
+export const stripeSessionId = async (req, res) => {
+  // const paymentIntent = await stripe.paymentIntents.retrieve(
+  //   "pi_1DsvUI2eZvKYlo2CQsJmKXXT"
+  // );
+
+  // const paymentIntent = await stripe.paymentIntents.retrieve(
+  //   item.postedBy.stripe_account_id
+  // );
+  // console.log("stripe endpoint", req.body.hotelId);
+  // 1.get hotel id from req.body
+  const { hotelId } = req.body;
+  // 2.find the hotel based on hotel id from db
+  const item = await hotel.findById(hotelId).populate("postedBy").exec();
+  // 3. 20% charge as application fee
+  const fee = (item.price * 15) / 100;
+  // 4. create a session
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ["card"],
+    // 5. purchasing item details, it will be shown to user on checkout
+    line_items: [
+      {
+        price_data: {
+          currency: "myr",
+          unit_amount: item.price * 100,
+          product_data: {
+            name: item.title,
+          },
+        },
+        quantity: 1,
+      },
+    ],
+    mode: "payment",
+    // 6. create payment intent with application fee and destination charge
+    payment_intent_data: {
+      application_fee_amount: fee * 100,
+      // this seller can see his balance in our FE dashboard
+      transfer_data: {
+        destination: item.postedBy.stripe_account_id,
+      },
+    },
+
+    success_url: `${process.env.STRIPE_SUCCESS_URL}/${item._id}`,
+    cancel_url: process.env.STRIPE_CANCEL_URL,
+  });
+
+  // 7. add this session object to user in db
+  await User.findByIdAndUpdate(req.auth._id, { stripeSession: session }).exec();
+  // 8. send session id as response to frontend
+  res.send({
+    sessionId: session.id,
+  });
+  // console.log("SESSION =====>", session);
 };
