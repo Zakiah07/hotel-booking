@@ -34,6 +34,8 @@ export const create = async (req, res) => {
 };
 
 export const hotels = async (req, res) => {
+  // to hide hotel with old available dates
+  // let all = await Hotel.find({ from: { $gte: new Date() } })
   let all = await Hotel.find({})
     .limit(24)
     .select("-image.data")
@@ -110,3 +112,35 @@ export const userHotelBookings = async (req, res) => {
     .exec();
   res.json(all);
 };
+
+export const isAlreadyBooked = async (req, res) => {
+  const { hotelId } = req.params;
+  // find orders of the currently logged in user
+  const userOrders = await Order.find({ orderedBy: req.auth._id })
+    .select("hotel")
+    .exec();
+  // check if hotel id is found in userOrders array
+  let ids = [];
+  for (let i = 0; i < userOrders.length; i++) {
+    ids.push(userOrders[i].hotel.toString());
+  }
+  res.json({
+    ok: ids.includes(hotelId),
+  });
+};
+
+export const searchListings = async (req, res) => {
+  const { location, date, bed } = req.body;
+  // console.log(location, date, bed);
+  let result = await Hotel.find({ from: { $gte: new Date() }, location })
+    .select("-image.data")
+    .exec();
+  res.json(result);
+};
+
+// if you want to be more specific about the end date
+// find({from: {$gte: new Date()},
+// to: {$lte: to},
+// location,
+// bed,
+// })

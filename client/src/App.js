@@ -14,6 +14,7 @@ import EditHotel from "./hotels/EditHotel";
 import ViewHotel from "./hotels/ViewHotel";
 import StripeCancel from "./stripe/StripeCancel";
 import StripeSuccess from "./stripe/StripeSuccess";
+import SearchResult from "./hotels/SearchResult";
 
 function App() {
   return (
@@ -92,6 +93,10 @@ function App() {
               <StripeCancel />
             </PrivateRoute>
           }
+        />
+        <Route
+          path="/search-result"
+          element={<SearchResult />}
         />
       </Routes>
     </Router>
